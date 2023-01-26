@@ -16,9 +16,7 @@ module exe_stage(
     output        data_sram_en   ,
     output [ 3:0] data_sram_wen  ,
     output [31:0] data_sram_addr ,
-    output [31:0] data_sram_wdata,
-    //pipeline: to id
-    output[ 4:0] EXE_dest 
+    output [31:0] data_sram_wdata
 );
 
 reg         es_valid      ;
@@ -92,7 +90,7 @@ assign es_alu_src2 = es_src2_is_imm ? {{16{es_imm[15]}}, es_imm[15:0]} :
 
 alu u_alu(
     .alu_op     (es_alu_op    ),
-    .alu_src1   (es_alu_src1  ),
+    .alu_src1   (es_alu_src2  ),
     .alu_src2   (es_alu_src2  ),
     .alu_result (es_alu_result)
     );
@@ -101,5 +99,5 @@ assign data_sram_en    = 1'b1;
 assign data_sram_wen   = es_mem_we&&es_valid ? 4'hf : 4'h0;
 assign data_sram_addr  = es_alu_result;
 assign data_sram_wdata = es_rt_value;
-assign EXE_dest = es_dest & {5{es_valid}};
+
 endmodule

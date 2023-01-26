@@ -15,9 +15,7 @@ module id_stage(
     //to fs
     output [`BR_BUS_WD       -1:0] br_bus        ,
     //to rf: for write back
-    input  [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus,
-    //pipeline: dest reg addr
-    input[ 4:0] EXE_dest 
+    input  [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus
 );
 
 reg         ds_valid   ;
@@ -128,6 +126,7 @@ always @(posedge clk) begin
     else if (ds_allowin) begin
         ds_valid <= fs_to_ds_valid;
     end
+
     if (fs_to_ds_valid && ds_allowin) begin
         fs_to_ds_bus_r <= fs_to_ds_bus;
     end
@@ -181,7 +180,9 @@ assign alu_op[ 8] = inst_sll;
 assign alu_op[ 9] = inst_srl;
 assign alu_op[10] = inst_sra;
 assign alu_op[11] = inst_lui;
+
 assign load_op = inst_lw;
+
 assign src1_is_sa   = inst_sll   | inst_srl | inst_sra;
 assign src1_is_pc   = inst_jal;
 assign src2_is_imm  = inst_addiu | inst_lui | inst_lw | inst_sw;
