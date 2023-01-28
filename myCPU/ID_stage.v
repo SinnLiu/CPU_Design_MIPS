@@ -15,7 +15,13 @@ module id_stage(
     //to fs
     output [`BR_BUS_WD       -1:0] br_bus        ,
     //to rf: for write back
-    input  [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus
+    input  [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus  ,
+    //pipeline-bypass
+    input                          es_load_op,      // 执行级是否为load指令
+    input  [31:0]                  es_to_ds_result,
+    input  [31:0]                  ms_to_ds_result,
+    input  [31:0]                  ws_to_ds_result,
+    input  [4:0]                   es_dest
 );
 
 reg         ds_valid   ;
@@ -99,7 +105,10 @@ wire [31:0] rf_rdata2;
 
 wire        rs_eq_rt;
 
-assign br_bus       = {br_taken,br_target};
+wire load_stall;                        // 发生转移计算未完成的标志
+wire br_stall;                          // 向取指级进行信息传递
+
+assign br_bus       = {br_stall,br_taken,br_target};
 
 assign ds_to_es_bus = {alu_op      ,  //135:124
                        load_op     ,  //123:123
@@ -116,9 +125,13 @@ assign ds_to_es_bus = {alu_op      ,  //135:124
                        ds_pc          //31 :0
                       };
 
-assign ds_ready_go    = 1'b1;
+assign ds_ready_go    = ~load_stall;           // 内部状态表征信号
 assign ds_allowin     = !ds_valid || ds_ready_go && es_allowin;
 assign ds_to_es_valid = ds_valid && ds_ready_go;
+
+assign load_stall = ((rs == es_dest)  || (rt == EXE_dest)) & es_load_op;
+assign br_stall = br_taken & load_stall & {5{ds_valid}};
+
 always @(posedge clk) begin
     if (reset) begin
         ds_valid <= 1'b0;

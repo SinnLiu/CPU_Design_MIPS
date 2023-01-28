@@ -16,7 +16,11 @@ module exe_stage(
     output        data_sram_en   ,
     output [ 3:0] data_sram_wen  ,
     output [31:0] data_sram_addr ,
-    output [31:0] data_sram_wdata
+    output [31:0] data_sram_wdata,
+    // pipeline-bypass
+    output        es_load_op,                       // 执行级是否为load指令
+    output [31:0] es_to_ds_result,                  // 执行级寄存器值
+    output [4:0]  es_dest                           // 执行级目的寄存器号
 );
 
 reg         es_valid      ;
@@ -54,6 +58,8 @@ assign {es_alu_op      ,  //135:124
 wire [31:0] es_alu_src1   ;
 wire [31:0] es_alu_src2   ;
 wire [31:0] es_alu_result ;
+
+assign es_to_ds_result = es_alu_result;
 
 wire        es_res_from_mem;
 

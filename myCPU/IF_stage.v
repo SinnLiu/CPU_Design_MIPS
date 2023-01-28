@@ -28,7 +28,10 @@ wire [31:0] nextpc;
 
 wire         br_taken;
 wire [ 31:0] br_target;
-assign {br_taken,br_target} = br_bus;
+wire         pre_fs_ready_go;
+wire         br_stall;
+assign {br_stall,br_taken,br_target} = br_bus;
+assign pre_fs_ready_go = ~br_stall;
 
 wire [31:0] fs_inst;
 reg  [31:0] fs_pc;
@@ -36,7 +39,7 @@ assign fs_to_ds_bus = {fs_inst ,
                        fs_pc   };
 
 // pre-IF stage
-assign to_fs_valid  = ~reset;
+assign to_fs_valid  = ~reset && pre_fs_ready_go;
 assign seq_pc       = fs_pc + 3'h4;
 assign nextpc       = br_taken ? br_target : seq_pc; 
 
@@ -60,7 +63,7 @@ always @(posedge clk) begin
     end
 end
 
-assign inst_sram_en    = to_fs_valid && fs_allowin;
+assign inst_sram_en    = to_fs_valid && fs_allowin && pre_fs_ready_go;
 assign inst_sram_wen   = 4'h0;
 assign inst_sram_addr  = nextpc;
 assign inst_sram_wdata = 32'b0;

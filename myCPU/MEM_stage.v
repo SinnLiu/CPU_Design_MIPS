@@ -13,7 +13,9 @@ module mem_stage(
     output                         ms_to_ws_valid,
     output [`MS_TO_WS_BUS_WD -1:0] ms_to_ws_bus  ,
     //from data-sram
-    input  [31                 :0] data_sram_rdata
+    input  [31                 :0] data_sram_rdata,
+    // pipeline-bypass
+    output [31:0]                  ms_to_ds_result
 );
 
 reg         ms_valid;
@@ -34,6 +36,7 @@ assign {ms_res_from_mem,  //70:70
 
 wire [31:0] mem_result;
 wire [31:0] ms_final_result;
+assign ms_to_ds_result = ms_final_result;
 
 assign ms_to_ws_bus = {ms_gr_we       ,  //69:69
                        ms_dest        ,  //68:64
