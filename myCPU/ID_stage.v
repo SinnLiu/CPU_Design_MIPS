@@ -147,7 +147,7 @@ assign ds_ready_go    = ~load_stall;           // 内部状态表征信号
 assign ds_allowin     = !ds_valid || ds_ready_go && es_allowin;
 assign ds_to_es_valid = ds_valid && ds_ready_go;
 
-assign load_stall = ((rs == ES_dest)  || (rt == ES_dest)) & es_load_op;
+assign load_stall = ((rs_wait & (rs == ES_dest))  || (rt_wait & (rt == ES_dest))) & es_load_op;
 assign br_stall = br_taken & load_stall & {5{ds_valid}};
 
 always @(posedge clk) begin
