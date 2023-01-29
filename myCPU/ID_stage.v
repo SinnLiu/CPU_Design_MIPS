@@ -21,7 +21,9 @@ module id_stage(
     input  [31:0]                  es_to_ds_result,
     input  [31:0]                  ms_to_ds_result,
     input  [31:0]                  ws_to_ds_result,
-    input  [4:0]                   es_dest
+    input  [4:0]                   ES_dest,         // 执行级目的寄存器号
+    input  [4:0]                   MS_dest,         // 访存级目的寄存器号
+    input  [4:0]                   WS_dest          // 写回级目的寄存器号
 );
 
 reg         ds_valid   ;
@@ -108,6 +110,22 @@ wire        rs_eq_rt;
 wire load_stall;                        // 发生转移计算未完成的标志
 wire br_stall;                          // 向取指级进行信息传递
 
+// 这段代码在bypass或者阻塞技术上都需要
+// 需要判断出是否有相关冲突产生：判断rs和rt是否存在，若存在，是否和各个dest冲突
+wire src1_no_rs;    //指令 rs 域非 0，且不是从寄存器堆读 rs 的数据
+wire src2_no_rt;    //指令 rt 域非 0，且不是从寄存器堆读 rt 的数据
+assign src1_no_rs = 1'b0;
+assign src2_no_rt = inst_addiu | load_op | inst_jal | inst_lui;
+wire rs_wait;       //与源操作数rs对应的寄存器号一致
+wire rt_wait;		//与源操作数rt对应的寄存器号一致
+assign rs_wait = ~src1_no_rs & (rs!=5'd0) 
+                 & ( (rs==ES_dest) | (rs==MS_dest) | (rs==WS_dest) );
+assign rt_wait = ~src2_no_rt & (rt!=5'd0)
+                 & ( (rt==ES_dest) | (rt==MS_dest) | (rt==WS_dest) );
+                 
+wire inst_no_dest;    //标记指令没有寄存器号
+assign inst_no_dest = inst_beq | inst_bne | inst_jr | inst_sw;
+
 assign br_bus       = {br_stall,br_taken,br_target};
 
 assign ds_to_es_bus = {alu_op      ,  //135:124
@@ -129,7 +147,7 @@ assign ds_ready_go    = ~load_stall;           // 内部状态表征信号
 assign ds_allowin     = !ds_valid || ds_ready_go && es_allowin;
 assign ds_to_es_valid = ds_valid && ds_ready_go;
 
-assign load_stall = ((rs == es_dest)  || (rt == EXE_dest)) & es_load_op;
+assign load_stall = ((rs == ES_dest)  || (rt == ES_dest)) & es_load_op;
 assign br_stall = br_taken & load_stall & {5{ds_valid}};
 
 always @(posedge clk) begin
@@ -208,7 +226,7 @@ assign mem_we       = inst_sw;
 
 assign dest         = dst_is_r31 ? 5'd31 :
                       dst_is_rt  ? rt    : 
-                                   rd;
+                      inst_no_dest ? 5'd0: rd;
 
 assign rf_raddr1 = rs;
 assign rf_raddr2 = rt;
@@ -223,9 +241,15 @@ regfile u_regfile(
     .wdata  (rf_wdata )
     );
 
-assign rs_value = rf_rdata1;
-assign rt_value = rf_rdata2;
-
+// 原始的读取方式
+// assign rs_value = rf_rdata1;
+// assign rt_value = rf_rdata2;
+// 首先需要判断是否有dest和src的重合，再进行value的生成
+assign rs_value = rs_wait ? ((rs==ES_dest) ? es_to_ds_result :
+                  (rs==MS_dest) ? ms_to_ds_result : ws_to_ds_result) : rf_rdata1;
+assign rt_value = rt_wait ? ((rt==ES_dest) ? es_to_ds_result :
+                  (rt==MS_dest) ? ms_to_ds_result : ws_to_ds_result) : rf_rdata2;
+// 译码级bypass处理结束
 assign rs_eq_rt = (rs_value == rt_value);
 assign br_taken = (   inst_beq  &&  rs_eq_rt
                    || inst_bne  && !rs_eq_rt

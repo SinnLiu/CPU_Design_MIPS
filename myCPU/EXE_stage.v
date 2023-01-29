@@ -20,7 +20,7 @@ module exe_stage(
     // pipeline-bypass
     output        es_load_op,                       // 执行级是否为load指令
     output [31:0] es_to_ds_result,                  // 执行级寄存器值
-    output [4:0]  es_dest                           // 执行级目的寄存器号
+    output [4:0]  ES_dest                           // 执行级目的寄存器号
 );
 
 reg         es_valid      ;
@@ -105,5 +105,5 @@ assign data_sram_en    = 1'b1;
 assign data_sram_wen   = es_mem_we&&es_valid ? 4'hf : 4'h0;
 assign data_sram_addr  = es_alu_result;
 assign data_sram_wdata = es_rt_value;
-
+assign ES_dest = es_dest & {5{es_valid}};       // 增加有效位判断
 endmodule

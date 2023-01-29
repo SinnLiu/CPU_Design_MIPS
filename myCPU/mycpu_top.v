@@ -36,7 +36,14 @@ wire [`ES_TO_MS_BUS_WD -1:0] es_to_ms_bus;
 wire [`MS_TO_WS_BUS_WD -1:0] ms_to_ws_bus;
 wire [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus;
 wire [`BR_BUS_WD       -1:0] br_bus;
-
+//pipeline-bypass
+wire                          es_load_op,      // 执行级是否为load指令
+wire  [31:0]                  es_to_ds_result,
+wire  [31:0]                  ms_to_ds_result,
+wire  [31:0]                  ws_to_ds_result,
+wire  [4:0]                   ES_dest,         // 执行级目的寄存器号
+wire  [4:0]                   MS_dest,         // 访存级目的寄存器号
+wire  [4:0]                   WS_dest          // 写回级目的寄存器号
 // IF stage
 if_stage if_stage(
     .clk            (clk            ),
@@ -71,7 +78,16 @@ id_stage id_stage(
     //to fs
     .br_bus         (br_bus         ),
     //to rf: for write back
-    .ws_to_rf_bus   (ws_to_rf_bus   )
+    .ws_to_rf_bus   (ws_to_rf_bus   ),
+    //pipeline-bypass
+    .es_load_op      (es_load_op ),
+    .es_to_ds_result (es_to_ds_result ),
+    .ms_to_ds_result (ms_to_ds_result ),
+    .ws_to_ds_result (ws_to_ds_result ),
+    .ES_dest         (ES_dest ),
+    .MS_dest         (MS_dest ),
+    .WS_dest         (WS_dest)
+  
 );
 // EXE stage
 exe_stage exe_stage(
@@ -90,7 +106,11 @@ exe_stage exe_stage(
     .data_sram_en   (data_sram_en   ),
     .data_sram_wen  (data_sram_wen  ),
     .data_sram_addr (data_sram_addr ),
-    .data_sram_wdata(data_sram_wdata)
+    .data_sram_wdata(data_sram_wdata),
+    // pipeline-bypass
+    .es_load_op      (es_load_op ),
+    .es_to_ds_result (es_to_ds_result ),
+    .ES_dest         (ES_dest ),
 );
 // MEM stage
 mem_stage mem_stage(
@@ -106,7 +126,10 @@ mem_stage mem_stage(
     .ms_to_ws_valid (ms_to_ws_valid ),
     .ms_to_ws_bus   (ms_to_ws_bus   ),
     //from data-sram
-    .data_sram_rdata(data_sram_rdata)
+    .data_sram_rdata(data_sram_rdata),
+    // pipeline-bypass
+    .ms_to_ds_result (ms_to_ds_result ),
+    .MS_dest         (MS_dest ),
 );
 // WB stage
 wb_stage wb_stage(
@@ -123,7 +146,10 @@ wb_stage wb_stage(
     .debug_wb_pc      (debug_wb_pc      ),
     .debug_wb_rf_wen  (debug_wb_rf_wen  ),
     .debug_wb_rf_wnum (debug_wb_rf_wnum ),
-    .debug_wb_rf_wdata(debug_wb_rf_wdata)
+    .debug_wb_rf_wdata(debug_wb_rf_wdata),
+    // pipeline-bypass
+    .ws_to_ds_result (ws_to_ds_result ),
+    .WS_dest         (WS_dest)
 );
 
 endmodule

@@ -15,7 +15,8 @@ module mem_stage(
     //from data-sram
     input  [31                 :0] data_sram_rdata,
     // pipeline-bypass
-    output [31:0]                  ms_to_ds_result
+    output [31:0]                  ms_to_ds_result,
+    output [4:0]                   MS_dest                           // 访存级目的寄存器号
 );
 
 reg         ms_valid;
@@ -65,4 +66,5 @@ assign mem_result = data_sram_rdata;
 assign ms_final_result = ms_res_from_mem ? mem_result
                                          : ms_alu_result;
 
+assign MS_dest = ms_dest & {5{ms_valid}};       // 增加有效位判断
 endmodule
