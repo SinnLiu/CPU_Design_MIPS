@@ -4,7 +4,7 @@
 
 | 指令类别 | 指令 |
 | --- | --- |
-| 运算指令 | ADDU,ADDIU,SUBU,ADD,ADDI,SUB |
+| 运算指令 | ADDU,ADDIU,SUBU,ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV |
 | 转移指令 |  |
 | 访存指令 |  |
 
@@ -16,4 +16,6 @@
   - [x] 译码级进行bypass逻辑处理
   - [x] top模块连线
   - [x] 实验验证
-- [ ] 添加算术逻辑运算类指令ADD,ADDI,SUB
+- [ ] 添加算术逻辑运算类指令ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV
+  - [x] ADD
+  - [ ] ADDI
