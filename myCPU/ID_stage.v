@@ -89,6 +89,7 @@ wire        inst_nor;
 wire        inst_sll;
 wire        inst_srl;
 wire        inst_sra;
+wire        inst_addi;
 wire        inst_addiu;
 wire        inst_lui;
 wire        inst_lw;
@@ -116,7 +117,7 @@ wire br_stall;                          // 向取指级进行信息传递
 wire src1_no_rs;    //指令 rs 域非 0，且不是从寄存器堆读 rs 的数据
 wire src2_no_rt;    //指令 rt 域非 0，且不是从寄存器堆读 rt 的数据
 assign src1_no_rs = 1'b0;
-assign src2_no_rt = inst_addiu | load_op | inst_jal | inst_lui;
+assign src2_no_rt = inst_addi | inst_addiu | load_op | inst_jal | inst_lui;
 wire rs_wait;       //与源操作数rs对应的寄存器号一致
 wire rt_wait;		//与源操作数rt对应的寄存器号一致
 assign rs_wait = ~src1_no_rs & (rs!=5'd0) 
@@ -192,6 +193,7 @@ assign inst_nor    = op_d[6'h00] & func_d[6'h27] & sa_d[5'h00];
 assign inst_sll    = op_d[6'h00] & func_d[6'h00] & rs_d[5'h00];
 assign inst_srl    = op_d[6'h00] & func_d[6'h02] & rs_d[5'h00];
 assign inst_sra    = op_d[6'h00] & func_d[6'h03] & rs_d[5'h00];
+assign inst_addi  = op_d[6'h08];
 assign inst_addiu  = op_d[6'h09];
 assign inst_lui    = op_d[6'h0f] & rs_d[5'h00];
 assign inst_lw     = op_d[6'h23];
@@ -201,7 +203,7 @@ assign inst_bne    = op_d[6'h05];
 assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 
-assign alu_op[ 0] = inst_add | inst_addu | inst_addiu | inst_lw | inst_sw | inst_jal;
+assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal;
 assign alu_op[ 1] = inst_subu;
 assign alu_op[ 2] = inst_slt;
 assign alu_op[ 3] = inst_sltu;
@@ -218,11 +220,11 @@ assign load_op = inst_lw;
 
 assign src1_is_sa   = inst_sll   | inst_srl | inst_sra;
 assign src1_is_pc   = inst_jal;
-assign src2_is_imm  = inst_addiu | inst_lui | inst_lw | inst_sw;
+assign src2_is_imm  = inst_addi | inst_addiu | inst_lui | inst_lw | inst_sw;
 assign src2_is_8    = inst_jal;
 assign res_from_mem = inst_lw;
 assign dst_is_r31   = inst_jal;
-assign dst_is_rt    = inst_addiu | inst_lui | inst_lw;
+assign dst_is_rt    = inst_addi | inst_addiu | inst_lui | inst_lw;
 assign gr_we        = ~inst_sw & ~inst_beq & ~inst_bne & ~inst_jr;
 assign mem_we       = inst_sw;
 
