@@ -79,6 +79,7 @@ wire [63:0] func_d;
 
 wire        inst_add;
 wire        inst_addu;
+wire        inst_sub;  
 wire        inst_subu;
 wire        inst_slt;
 wire        inst_sltu;
@@ -183,6 +184,7 @@ decoder_5_32 u_dec5(.in(sa  ), .out(sa_d  ));
 
 assign inst_add    = op_d[6'h00] & func_d[6'h20] & sa_d[5'h00];
 assign inst_addu   = op_d[6'h00] & func_d[6'h21] & sa_d[5'h00];
+assign inst_sub    = op_d[6'h00] & func_d[6'h22] & sa_d[5'h00];
 assign inst_subu   = op_d[6'h00] & func_d[6'h23] & sa_d[5'h00];
 assign inst_slt    = op_d[6'h00] & func_d[6'h2a] & sa_d[5'h00];
 assign inst_sltu   = op_d[6'h00] & func_d[6'h2b] & sa_d[5'h00];
@@ -204,7 +206,7 @@ assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 
 assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal;
-assign alu_op[ 1] = inst_subu;
+assign alu_op[ 1] = inst_sub | inst_subu;
 assign alu_op[ 2] = inst_slt;
 assign alu_op[ 3] = inst_sltu;
 assign alu_op[ 4] = inst_and;
