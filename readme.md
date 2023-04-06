@@ -24,6 +24,11 @@
   - [ ] SLTIU
 
 # 更新日志
+## 2023.04.06
+添加了SLTI指令：
+- 添加`inst_slti`信号线
+- alu控制信号`alu_op[ 2]`添加`inst_slti`信号
+- 在立即数指令控制信号`src2_no_rt`、`src2_is_imm`、`dst_is_rt`上添加`inst_slti`信号
 
 ## 2023.04.05
 1. 添加了SUB指令
