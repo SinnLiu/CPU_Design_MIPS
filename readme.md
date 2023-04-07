@@ -20,10 +20,31 @@
   - [x] ADD
   - [x] ADDI
   - [x] SUB
-  - [ ] SLTI
-  - [ ] SLTIU
+  - [x] SLTI
+  - [x] SLTIU
+  - [x] ANDI
+  - [ ] ORI
+  - [ ] XORI
+  - [ ] SLLV
 
 # 更新日志
+## 2023.04.07
+1. 添加了SLTIU指令
+   - 添加`inst_sltiu`信号线
+   - alu控制信号`alu_op[ 2]`添加`inst_sltiu`信号
+   - 在立即数指令控制信号`src2_no_rt`、`src2_is_imm`、`dst_is_rt`上添加`inst_sltiu`信号
+2. 添加了ANDI指令
+   - 在***ID_stage***增加了`src2_is_zero`信号判断零扩展，并在`ds_to_es_bus`添加
+   - 修改`define DS_TO_ES_BUS_WD 136`为`define DS_TO_ES_BUS_WD 137`
+   - 添加`inst_andi`信号线
+   - 读取`inst_andi`信号
+   - alu控制信号`alu_op[ 4]`添加`inst_andi`信号
+   - 在立即数指令控制信号`src2_no_rt`、`src2_is_imm`、`dst_is_rt`上添加`inst_andi`信号
+   - 在`src2_is_zero`信号上添加`inst_andi`信号
+   - 在***EXE_stage***中添加`es_src2_is_zero`信号
+   - 在***EXE_stage***中添加零扩展逻辑`es_src2_is_zero? {{16'd0}, es_imm[15:0]}:`
+
+
 ## 2023.04.06
 添加了SLTI指令：
 - 添加`inst_slti`信号线

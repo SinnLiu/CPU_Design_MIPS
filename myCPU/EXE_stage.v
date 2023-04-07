@@ -40,7 +40,8 @@ wire [15:0] es_imm        ;
 wire [31:0] es_rs_value   ;
 wire [31:0] es_rt_value   ;
 wire [31:0] es_pc         ;
-assign {es_alu_op      ,  //135:124
+assign {es_src2_is_zero,  //137:136
+        es_alu_op      ,  //135:124
         es_load_op     ,  //123:123
         es_src1_is_sa  ,  //122:122
         es_src1_is_pc  ,  //121:121
@@ -90,7 +91,8 @@ end
 assign es_alu_src1 = es_src1_is_sa  ? {27'b0, es_imm[10:6]} : 
                      es_src1_is_pc  ? es_pc[31:0] :
                                       es_rs_value;
-assign es_alu_src2 = es_src2_is_imm ? {{16{es_imm[15]}}, es_imm[15:0]} : 
+assign es_alu_src2 = es_src2_is_zero? {{16'd0}, es_imm[15:0]}:
+                     es_src2_is_imm ? {{16{es_imm[15]}}, es_imm[15:0]} : 
                      es_src2_is_8   ? 32'd8 :
                                       es_rt_value;
 
