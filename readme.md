@@ -23,11 +23,19 @@
   - [x] SLTI
   - [x] SLTIU
   - [x] ANDI
-  - [ ] ORI
+  - [x] ORI
   - [ ] XORI
   - [ ] SLLV
 
 # 更新日志
+## 2023.05.28
+1.添加了ORI指令
+  - 添加`inst_ori`信号线
+  - 解析`inst_ori`信号，其opcode为0x0d
+  - 在立即数指令控制信号`src2_no_rt`、`src2_is_imm`、`dst_is_rt`上添加信号
+  - 在`src2_is_zero`信号上添加信号以实现零扩展
+  - alu控制信号`alu_op[ 6]`添加信号，复用OR指令在exe阶段的数据通路，调用ALU
+
 ## 2023.04.07
 1. 添加了SLTIU指令
    - 添加`inst_sltiu`信号线
