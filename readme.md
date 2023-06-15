@@ -16,7 +16,7 @@
   - [x] 译码级进行bypass逻辑处理
   - [x] top模块连线
   - [x] 实验验证
-- [ ] 添加算术逻辑运算类指令ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV
+- [x] 添加算术逻辑运算类指令ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV
   - [x] ADD
   - [x] ADDI
   - [x] SUB
@@ -25,9 +25,20 @@
   - [x] ANDI
   - [x] ORI
   - [x] XORI
-  - [ ] SLLV
+  - [x] SLLV
+  - [x] SRLV
+  - [x] SRAV
+- [] 添加乘除法指令
 
 # 更新日志
+## 2023.06.15
+1. 添加了SLLV指令
+   - 添加`inst_sllv`信号线
+   - 解码`inst_sllv`信号线
+   - 复用`inst_sll`信号对ALU的控制
+2. 添加了SRLV指令
+3. 添加了SRAV指令
+
 ## 2023.05.28
 1. 添加了ORI指令
    - 添加`inst_ori`信号线
