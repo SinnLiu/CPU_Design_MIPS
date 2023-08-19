@@ -40,6 +40,10 @@ wire [15:0] es_imm        ;
 wire [31:0] es_rs_value   ;
 wire [31:0] es_rt_value   ;
 wire [31:0] es_pc         ;
+wire        data_en       ;
+wire        data_wen      ;
+wire        data_addr     ;
+wire        data_wdata    ;
 assign {es_src2_is_zero,  //137:136
         es_alu_op      ,  //135:124
         es_load_op     ,  //123:123
@@ -103,9 +107,31 @@ alu u_alu(
     .alu_result (es_alu_result)
     );
 
-assign data_sram_en    = 1'b1;
-assign data_sram_wen   = es_mem_we&&es_valid ? 4'hf : 4'h0;
-assign data_sram_addr  = es_alu_result;
-assign data_sram_wdata = es_rt_value;
+store_buffer u_store_buffer(
+    .clk                (clk              ),
+    .reset              (reset            ),
+    // data_sram_in
+    .data_sram_en_in    (data_en          ), 
+    .data_sram_wen_in   (data_wen         ),
+    .data_sram_addr_in  (data_addr        ),
+    .data_sram_wdata_in (data_wdata       ),
+    // data_sram_out
+    .data_sram_en_out    (data_sram_en    ),
+    .data_sram_wen_out   (data_sram_wen   ),
+    .data_sram_addr_out  (data_sram_addr  ),
+    .data_sram_wdata_out (data_sram_wdata )
+    );
+
+assign data_en         = 1'b1;
+assign data_wen        = es_mem_we&&es_valid ? 4'hf : 4'h0;
+assign data_addr       = es_alu_result;
+assign data_wdata      = es_rt_value;
+
+// not change the orignal data path
+// assign data_sram_en    = data_en   ;
+// assign data_sram_wen   = data_wen  ;
+// assign data_sram_addr  = data_addr ;
+// assign data_sram_wdata = data_wdata;
+
 assign ES_dest = es_dest & {5{es_valid}};       // 增加有效位判断
 endmodule
