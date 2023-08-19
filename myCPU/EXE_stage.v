@@ -21,6 +21,8 @@ module exe_stage(
     output        es_load_op,                       // 执行级是否为load指令
     output [31:0] es_to_ds_result,                  // 执行级寄存器值
     output [4:0]  ES_dest                           // 执行级目的寄存器号
+    // enable to store data 
+    input         mem_we,
 );
 
 reg         es_valid      ;
@@ -111,6 +113,7 @@ alu u_alu(
 store_buffer u_store_buffer(
     .clk                (clk              ),
     .reset              (reset            ),
+    .from_wb_stroe_inst (mem_we           ),
     // data_sram_in
     .data_sram_en_in    (data_en          ), 
     .data_sram_wen_in   (data_wen         ),
