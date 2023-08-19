@@ -69,7 +69,8 @@ assign es_to_ds_result = es_alu_result;
 wire        es_res_from_mem;
 
 assign es_res_from_mem = es_load_op;
-assign es_to_ms_bus = {es_res_from_mem,  //70:70
+assign es_to_ms_bus = {es_mem_we      ,  //71:71
+                       es_res_from_mem,  //70:70
                        es_gr_we       ,  //69:69
                        es_dest        ,  //68:64
                        es_alu_result  ,  //63:32
