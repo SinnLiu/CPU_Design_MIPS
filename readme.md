@@ -31,8 +31,8 @@
 - [ ] 添加乘除法指令
   - [ ] booth 定点乘法器
 - [ ] 添加转移指令
-  - [ ] BGEZ
-  - [ ] BGTZ
+  - [x] BGEZ
+  - [x] BGTZ
   - [ ] BLTZ
   - [ ] J
   - [ ] BLTZAL
@@ -41,6 +41,17 @@
 - [ ] 添加例外和中断的支持
 
 # 更新日志
+## 2023.08.23
+1. 探索了store buffer机制，发现目前的架构不适合将store操作移动到wb stage，代码进行回滚
+2. 修改`ID stage`中的`br_taken`为`br_token`
+3. 添加了`BGEZ`指令和`BGTZ`指令
+   - 在`ID stage`中添加`inst_bgez`和`inst_bgtz`信号，增加对指令的判断
+   - 添加`rs_gr_eq_zero`和`rs_gr_zero`信号，添加分支指令跳转的判断逻辑
+   - 添加`inst_no_dest`信号的无目的地址判断
+   - 添加`gr_we`信号非写通用寄存器判断
+   - 在跳转指示信号`br_token`中增加`inst_bgez`和`inst_bgtz`
+   - 在`br_target`中增加`inst_bgez`和`inst_bgtz`的转移地址，逻辑与`BEQ`相同
+
 ## 2023.06.15
 1. 添加了SLLV指令
    - 添加`inst_sllv`信号线
