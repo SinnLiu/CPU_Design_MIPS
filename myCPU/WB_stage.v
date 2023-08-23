@@ -25,13 +25,11 @@ wire        ws_ready_go;
 
 reg [`MS_TO_WS_BUS_WD -1:0] ms_to_ws_bus_r;
 wire        ws_gr_we;
-wire        ws_mem_we;
 wire [ 4:0] ws_dest;
 wire [31:0] ws_final_result;
 assign ws_to_ds_result = ws_final_result;
 wire [31:0] ws_pc;
-assign {ws_mem_we      ,  //70:70
-        ws_gr_we       ,  //69:69
+assign {ws_gr_we       ,  //69:69
         ws_dest        ,  //68:64
         ws_final_result,  //63:32
         ws_pc             //31:0

@@ -41,8 +41,7 @@ wire [31:0] mem_result;
 wire [31:0] ms_final_result;
 assign ms_to_ds_result = ms_final_result;
 
-assign ms_to_ws_bus = {ms_mem_we      ,  //70:70
-                       ms_gr_we       ,  //69:69
+assign ms_to_ws_bus = {ms_gr_we       ,  //69:69
                        ms_dest        ,  //68:64
                        ms_final_result,  //63:32
                        ms_pc             //31:0
