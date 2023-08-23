@@ -17,9 +17,7 @@ module wb_stage(
     output [31:0] debug_wb_rf_wdata,
     // pipeline-bypass
     output [31:0]                  ws_to_ds_result,
-    output [4:0]                   WS_dest        ,                  // 写回级目的寄存器号
-    // enable to store data 
-    output                         mem_we 
+    output [4:0]                   WS_dest                           // 写回级目的寄存器号
 );
 
 reg         ws_valid;
@@ -72,6 +70,4 @@ assign debug_wb_rf_wen   = {4{rf_we}};
 assign debug_wb_rf_wnum  = ws_dest;
 assign debug_wb_rf_wdata = ws_final_result;
 assign WS_dest = ws_dest & {5{ws_valid}};       // 增加有效位判断
-
-assign mem_we = ws_mem_we;
 endmodule

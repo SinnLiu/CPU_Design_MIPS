@@ -44,7 +44,6 @@ wire  [31:0]                  ws_to_ds_result;
 wire  [4:0]                   ES_dest;         // 执行级目的寄存器号
 wire  [4:0]                   MS_dest;         // 访存级目的寄存器号
 wire  [4:0]                   WS_dest;         // 写回级目的寄存器号
-wire                          mem_we;          // mem data write enable for stroe buffer module
 // IF stage
 if_stage if_stage(
     .clk            (clk            ),
@@ -111,9 +110,7 @@ exe_stage exe_stage(
     // pipeline-bypass
     .es_load_op      (es_load_op ),
     .es_to_ds_result (es_to_ds_result ),
-    .ES_dest         (ES_dest ),
-    // from wb stage for enable write mem data
-    .mem_we          (mem_we)
+    .ES_dest         (ES_dest )
 );
 // MEM stage
 mem_stage mem_stage(
@@ -152,9 +149,7 @@ wb_stage wb_stage(
     .debug_wb_rf_wdata(debug_wb_rf_wdata),
     // pipeline-bypass
     .ws_to_ds_result (ws_to_ds_result ),
-    .WS_dest         (WS_dest),
-    // to exe stage for enable write mem data
-    .mem_we          (mem_we)
+    .WS_dest         (WS_dest)
 );
 
 endmodule
