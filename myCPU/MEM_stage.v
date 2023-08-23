@@ -23,14 +23,12 @@ reg         ms_valid;
 wire        ms_ready_go;
 
 reg [`ES_TO_MS_BUS_WD -1:0] es_to_ms_bus_r;
-wire        ms_mem_we;
 wire        ms_res_from_mem;
 wire        ms_gr_we;
 wire [ 4:0] ms_dest;
 wire [31:0] ms_alu_result;
 wire [31:0] ms_pc;
-assign {ms_mem_we      ,  //71:71
-        ms_res_from_mem,  //70:70
+assign {ms_res_from_mem,  //70:70
         ms_gr_we       ,  //69:69
         ms_dest        ,  //68:64
         ms_alu_result  ,  //63:32
