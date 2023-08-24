@@ -108,6 +108,7 @@ wire        inst_beq;
 wire        inst_bne;
 wire        inst_bgez;
 wire        inst_bgtz;
+wire        inst_blez;
 wire        inst_jal;
 wire        inst_jr;
 
@@ -122,6 +123,7 @@ wire [31:0] rf_rdata2;
 wire        rs_eq_rt;
 wire        rs_gr_eq_zero;
 wire        rs_gr_zero;
+wire        rs_le_zero;
 
 wire load_stall;                        // 发生转移计算未完成的标志
 wire br_stall;                          // 向取指级进行信息传递
@@ -141,7 +143,7 @@ assign rt_wait = ~src2_no_rt & (rt!=5'd0)
                  & ( (rt==ES_dest) | (rt==MS_dest) | (rt==WS_dest) );
                  
 wire inst_no_dest;    //标记指令没有寄存器号
-assign inst_no_dest = inst_beq | inst_bne | inst_bgez | inst_bgtz | inst_jr | inst_sw;
+assign inst_no_dest = inst_beq | inst_bne | inst_bgez | inst_bgtz | inst_blez | inst_jr | inst_sw;
 
 assign br_bus       = {br_stall,br_token,br_target};
 
@@ -227,6 +229,7 @@ assign inst_beq    = op_d[6'h04];
 assign inst_bne    = op_d[6'h05];
 assign inst_bgez   = op_d[6'h01];
 assign inst_bgtz   = op_d[6'h07];
+assign inst_blez   = op_d[6'h06];
 assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 
@@ -256,7 +259,7 @@ assign dst_is_r31   = inst_jal;
 assign dst_is_rt    = inst_addi | inst_addiu | inst_slti | inst_sltiu | inst_andi | inst_lui | inst_lw
                     | inst_ori | inst_xori;
 // if inst is follow one, register file will not be writed
-assign gr_we        = ~inst_sw & ~inst_beq & ~inst_bgez & ~inst_bgtz & ~inst_bne & ~inst_jr;
+assign gr_we        = ~inst_sw & ~inst_beq & ~inst_bgez & ~inst_bgtz & ~inst_bne & ~inst_blez & ~inst_jr;
 assign mem_we       = inst_sw;
 
 assign dest         = dst_is_r31 ? 5'd31 :
@@ -288,14 +291,16 @@ assign rt_value = rt_wait ? ((rt==ES_dest) ? es_to_ds_result :
 assign rs_eq_rt = (rs_value == rt_value);
 assign rs_gr_eq_zero = (rs_gr_zero | (rs_value == 0)) ;
 assign rs_gr_zero = (rs_value > 0);
+assign rs_le_zero = (rs_value <= 0);
 assign br_token = (   inst_beq  &&  rs_eq_rt
                    || inst_bne  && !rs_eq_rt
                    || inst_bgez && rs_gr_eq_zero
                    || inst_bgtz && rs_gr_zero
+                   || inst_blez && rs_le_zero
                    || inst_jal
                    || inst_jr
                   ) && ds_valid;
-assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz) ? (fs_pc + {{14{imm[15]}}, imm[15:0], 2'b0}) :
+assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz || inst_blez) ? (fs_pc + {{14{imm[15]}}, imm[15:0], 2'b0}) :
                    (inst_jr)              ? rs_value :
                   /*inst_jal*/              {fs_pc[31:28], jidx[25:0], 2'b0};
 
