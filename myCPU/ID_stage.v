@@ -46,7 +46,7 @@ assign {rf_we   ,  //37:37
         rf_wdata   //31:0
        } = ws_to_rf_bus;
 
-wire        br_token;
+wire        br_taken;
 wire [31:0] br_target;
 
 wire [11:0] alu_op;
@@ -108,8 +108,10 @@ wire        inst_beq;
 wire        inst_bne;
 wire        inst_bgez;
 wire        inst_bgtz;
+wire        inst_blez;
 wire        inst_jal;
 wire        inst_jr;
+wire        inst_j;
 
 wire        dst_is_r31;  
 wire        dst_is_rt;   
@@ -122,6 +124,7 @@ wire [31:0] rf_rdata2;
 wire        rs_eq_rt;
 wire        rs_gr_eq_zero;
 wire        rs_gr_zero;
+wire        rs_le_zero;
 
 wire load_stall;                        // 发生转移计算未完成的标志
 wire br_stall;                          // 向取指级进行信息传递
@@ -141,9 +144,9 @@ assign rt_wait = ~src2_no_rt & (rt!=5'd0)
                  & ( (rt==ES_dest) | (rt==MS_dest) | (rt==WS_dest) );
                  
 wire inst_no_dest;    //标记指令没有寄存器号
-assign inst_no_dest = inst_beq | inst_bne | inst_bgez | inst_bgtz | inst_jr | inst_sw;
+assign inst_no_dest = inst_beq | inst_bne | inst_bgez | inst_bgtz | inst_blez | inst_jr | inst_j | inst_sw;
 
-assign br_bus       = {br_stall,br_token,br_target};
+assign br_bus       = {br_stall,br_taken,br_target};
 
 assign ds_to_es_bus = {src2_is_zero,  //137:136
                        alu_op      ,  //135:124
@@ -166,7 +169,7 @@ assign ds_allowin     = !ds_valid || ds_ready_go && es_allowin;
 assign ds_to_es_valid = ds_valid && ds_ready_go;
 
 assign load_stall = ((rs_wait & (rs == ES_dest))  || (rt_wait & (rt == ES_dest))) & es_load_op;
-assign br_stall = br_token & load_stall & {5{ds_valid}};
+assign br_stall = br_taken & load_stall & {5{ds_valid}};
 
 always @(posedge clk) begin
     if (reset) begin
@@ -227,8 +230,10 @@ assign inst_beq    = op_d[6'h04];
 assign inst_bne    = op_d[6'h05];
 assign inst_bgez   = op_d[6'h01];
 assign inst_bgtz   = op_d[6'h07];
+assign inst_blez   = op_d[6'h06];
 assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
+assign inst_j      = op_d[6'h02];
 
 assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal;
 assign alu_op[ 1] = inst_sub | inst_subu;
@@ -256,7 +261,7 @@ assign dst_is_r31   = inst_jal;
 assign dst_is_rt    = inst_addi | inst_addiu | inst_slti | inst_sltiu | inst_andi | inst_lui | inst_lw
                     | inst_ori | inst_xori;
 // if inst is follow one, register file will not be writed
-assign gr_we        = ~inst_sw & ~inst_beq & ~inst_bgez & ~inst_bgtz & ~inst_bne & ~inst_jr;
+assign gr_we        = ~inst_sw & ~inst_beq & ~inst_bgez & ~inst_bgtz & ~inst_bne & ~inst_blez & ~inst_jr & ~inst_j;
 assign mem_we       = inst_sw;
 
 assign dest         = dst_is_r31 ? 5'd31 :
@@ -288,15 +293,18 @@ assign rt_value = rt_wait ? ((rt==ES_dest) ? es_to_ds_result :
 assign rs_eq_rt = (rs_value == rt_value);
 assign rs_gr_eq_zero = (rs_gr_zero | (rs_value == 0)) ;
 assign rs_gr_zero = (rs_value > 0);
-assign br_token = (   inst_beq  &&  rs_eq_rt
+assign rs_le_zero = (rs_value <= 0);
+assign br_taken = (   inst_beq  &&  rs_eq_rt
                    || inst_bne  && !rs_eq_rt
                    || inst_bgez && rs_gr_eq_zero
                    || inst_bgtz && rs_gr_zero
+                   || inst_blez && rs_le_zero
                    || inst_jal
                    || inst_jr
+                   || inst_j
                   ) && ds_valid;
-assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz) ? (fs_pc + {{14{imm[15]}}, imm[15:0], 2'b0}) :
+assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz || inst_blez) ? (fs_pc + {{14{imm[15]}}, imm[15:0], 2'b0}) :
                    (inst_jr)              ? rs_value :
-                  /*inst_jal*/              {fs_pc[31:28], jidx[25:0], 2'b0};
+                  /*inst_jal || inst_j*/              {fs_pc[31:28], jidx[25:0], 2'b0};
 
 endmodule

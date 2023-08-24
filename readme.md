@@ -33,7 +33,7 @@
 - [ ] 添加转移指令
   - [x] BGEZ
   - [x] BGTZ
-  - [ ] BLTZ
+  - [x] BLTZ
   - [ ] J
   - [ ] BLTZAL
   - [ ] BGEZAL
@@ -41,6 +41,23 @@
 - [ ] 添加例外和中断的支持
 
 # 更新日志
+## 2023.08.25
+1. 添加了`J`指令
+   - 在`ID stage`中添加`inst_j`信号，增加对指令的判断
+   - 添加`inst_no_dest`信号的无目的地址判断
+   - 添加`gr_we`信号非写通用寄存器判断
+   - 在跳转指示信号`br_taken`中增加`inst_j`
+   - 在`br_target`中增加`inst_j`的转移地址，逻辑与`JAL`相同
+
+## 2023.08.24
+1. 添加了`BLTZ`指令
+   - 在`ID stage`中添加`inst_blez`信号，增加对指令的判断
+   - 添加`rs_le_zero`信号，添加分支指令跳转的判断逻辑
+   - 添加`inst_no_dest`信号的无目的地址判断
+   - 添加`gr_we`信号非写通用寄存器判断
+   - 在跳转指示信号`br_token`中增加`inst_blez`
+   - 在`br_target`中增加`inst_blez`的转移地址，逻辑与`BEQ`相同
+
 ## 2023.08.23
 1. 探索了store buffer机制，发现目前的架构不适合将store操作移动到wb stage，代码进行回滚
 2. 修改`ID stage`中的`br_taken`为`br_token`
