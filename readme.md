@@ -34,7 +34,7 @@
   - [x] BGEZ
   - [x] BGTZ
   - [x] BLTZ
-  - [ ] J
+  - [x] J
   - [ ] BLTZAL
   - [ ] BGEZAL
   - [ ] JALR
