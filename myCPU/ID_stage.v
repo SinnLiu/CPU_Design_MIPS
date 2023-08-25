@@ -294,7 +294,7 @@ assign rs_eq_rt = (rs_value == rt_value);
 assign rs_gr_eq_zero = (rs_gr_zero | (rs_value == 0)) ;
 assign rs_gr_zero = (rs_value > 0);
 assign rs_le_zero = (rs_value <= 0);
-assign br_taken = (   inst_beq  &&  rs_eq_rt
+assign br_token = (   inst_beq  &&  rs_eq_rt
                    || inst_bne  && !rs_eq_rt
                    || inst_bgez && rs_gr_eq_zero
                    || inst_bgtz && rs_gr_zero
