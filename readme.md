@@ -35,14 +35,14 @@
   - [x] BGTZ
   - [x] BLTZ
   - [x] J
-  - [ ] BLTZAL
+  - [x] BLTZAL
   - [ ] BGEZAL
   - [ ] JALR
 - [ ] 添加例外和中断的支持
 
 # 更新日志
 ## 2023.09.10
-1. 添加了`JBGEZAL`指令
+1. 添加了`BLTZAL`指令
    - 在`ID stage`中添加`inst_bltzal`信号，增加对指令的判断
    - 添加`alu_op[ 0]`信号的ALU调用逻辑
    - 添加`src2_is_8`信号,使得PC加8
