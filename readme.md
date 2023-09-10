@@ -41,6 +41,16 @@
 - [ ] 添加例外和中断的支持
 
 # 更新日志
+## 2023.09.10
+1. 添加了`JBGEZAL`指令
+   - 在`ID stage`中添加`inst_bltzal`信号，增加对指令的判断
+   - 添加`alu_op[ 0]`信号的ALU调用逻辑
+   - 添加`src2_is_8`信号,使得PC加8
+   - 添加`dst_is_r31`信号,使得目的寄存器为31号通用寄存器
+   - 在跳转指示信号`br_taken`中增加`inst_bltzal`
+   - 在`br_taken`中增加`inst_bltzal`的转移地址，逻辑与`inst_bltz`相同
+2. 修改所有`blez`为`bltz`
+
 ## 2023.08.25
 1. 添加了`J`指令
    - 在`ID stage`中添加`inst_j`信号，增加对指令的判断
