@@ -110,6 +110,7 @@ wire        inst_bgez;
 wire        inst_bgtz;
 wire        inst_bltz;
 wire        inst_bltzal;
+wire        inst_bgezal;
 wire        inst_jal;
 wire        inst_jr;
 wire        inst_j;
@@ -233,11 +234,13 @@ assign inst_bgez   = op_d[6'h01] & rs_d[5'h01];
 assign inst_bgtz   = op_d[6'h07];
 assign inst_bltz   = op_d[6'h06];
 assign inst_bltzal = op_d[6'h01] & rs_d[5'h10];
+assign inst_bgezal = op_d[6'h01] & rs_d[5'h11];
 assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 assign inst_j      = op_d[6'h02];
 
-assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal | inst_bltzal;
+assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal | inst_bltzal 
+                    | inst_bgezal;
 assign alu_op[ 1] = inst_sub | inst_subu;
 assign alu_op[ 2] = inst_slt | inst_slti | inst_sltiu;
 assign alu_op[ 3] = inst_sltu;
@@ -256,10 +259,10 @@ assign src1_is_sa   = inst_sll   | inst_srl | inst_sra;
 assign src1_is_pc   = inst_jal;
 assign src2_is_imm  = inst_addi | inst_addiu | inst_slti | inst_sltiu | inst_andi | inst_lui | inst_lw 
                     | inst_sw | inst_ori | inst_xori;
-assign src2_is_8    = inst_jal | inst_bltzal;
+assign src2_is_8    = inst_jal | inst_bltzal | inst_bgezal;
 assign src2_is_zero = inst_andi | inst_ori | inst_xori;
 assign res_from_mem = inst_lw;
-assign dst_is_r31   = inst_jal | inst_bltzal;
+assign dst_is_r31   = inst_jal | inst_bltzal | inst_bgezal;
 assign dst_is_rt    = inst_addi | inst_addiu | inst_slti | inst_sltiu | inst_andi | inst_lui | inst_lw
                     | inst_ori | inst_xori;
 // if inst is follow one, register file will not be writed
@@ -303,11 +306,13 @@ assign br_taken = (   inst_beq  &&  rs_eq_rt
                    || inst_bltz && rs_le_zero
                    || inst_jal
                    || inst_bltzal && rs_le_zero
+                   || inst_bgezal && rs_gr_eq_zero
                    || inst_jr
                    || inst_j
                   ) && ds_valid;
 assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz || inst_bltz || rs_le_zero) ? (fs_pc + {{14{imm[15]}}, imm[15:0], 2'b0}) :
                    (inst_jr)              ? rs_value :
-                  /*inst_jal || inst_j*/              {fs_pc[31:28], jidx[25:0], 2'b0};
+                  /*inst_jal || inst_j || inst_bltzal || inst_bgezal*/              
+                   {fs_pc[31:28], jidx[25:0], 2'b0};
 
 endmodule
