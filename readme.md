@@ -4,43 +4,63 @@
 
 | 指令类别 | 指令 |
 | --- | --- |
-| 运算指令 | ADDU,ADDIU,SUBU,ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV |
-| 转移指令 |  |
+| 运算指令 | ADDU, ADDIU, SUBU, ADD, ADDI, SUB, SLTI, SLTIU, ANDI, ORI, XORI, SLLV, SRLV, SRAV |
+| 转移指令 | BGEZ, BGTZ, BLTZ, J, BLTZAL, BGEZAL, JALR |
 | 访存指令 |  |
 
 # 带有Inst RAM和Data RAM的仿真流程
 # 片外DDR流程
 # TODO List
 - [x] 流水线前递解决相关冲突
-  - [x] 加入各级dest信号到译码级，增加有效位判断
-  - [x] 译码级进行bypass逻辑处理
-  - [x] top模块连线
-  - [x] 实验验证
+   - [x] 加入各级dest信号到译码级，增加有效位判断
+   - [x] 译码级进行bypass逻辑处理
+   - [x] top模块连线
+   - [x] 实验验证
 - [x] 添加算术逻辑运算类指令ADD,ADDI,SUB,SLTI,SLTIU,ANDI,ORI,XORI,SLLV,SRLV,SRAV
-  - [x] ADD
-  - [x] ADDI
-  - [x] SUB
-  - [x] SLTI
-  - [x] SLTIU
-  - [x] ANDI
-  - [x] ORI
-  - [x] XORI
-  - [x] SLLV
-  - [x] SRLV
-  - [x] SRAV
+   - [x] ADD
+   - [x] ADDI
+   - [x] SUB
+   - [x] SLTI
+   - [x] SLTIU
+   - [x] ANDI
+   - [x] ORI
+   - [x] XORI
+   - [x] SLLV
+   - [x] SRLV
+   - [x] SRAV
 - [ ] 添加乘除法指令
   - [ ] booth 定点乘法器
-- [ ] 添加转移指令
-  - [x] BGEZ
-  - [x] BGTZ
-  - [x] BLTZ
-  - [x] J
-  - [x] BLTZAL
-  - [x] BGEZAL
-  - [ ] JALR
+- [x] 添加转移指令
+   - [x] BGEZ
+   - [x] BGTZ
+   - [x] BLTZ
+   - [x] J
+   - [x] BLTZAL
+   - [x] BGEZAL
+   - [x] JALR
+- [ ] 添加访存指令
+   - [ ] LB
+   - [ ] LBU
+   - [ ] LH
+   - [ ] LHU
+   - [ ] LWL
+   - [ ] LWR
+   - [ ] SB
+   - [ ] SH
+   - [ ] SWL
+   - [ ] SWR
 - [ ] 添加例外和中断的支持
 
 # 更新日志
+## 2023.09.16
+1. 添加了`JALR`指令
+   - 在`ID stage`中添加`inst_jalr`信号
+   - 增加对指令的判断:`assign inst_jalr   = op_d[6'h00] & func_d[6'h09];`
+   - 添加`alu_op[ 0]`信号的ALU调用逻辑
+   - 添加`src2_is_8`信号,使得PC加8
+   - 在跳转指示信号`br_taken`中增加`inst_jalr`
+   - 在`br_taken`中增加`inst_jalr`的转移地址，逻辑与`inst_jr`相同
+
 ## 2023.09.12
 1. 添加了`BGEZAL`指令
    - 在`ID stage`中添加`inst_bgezal`信号，增加对指令的判断
