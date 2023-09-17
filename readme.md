@@ -50,6 +50,11 @@
    - [ ] SWL
    - [ ] SWR
 - [ ] 添加例外和中断的支持
+   - [ ] add inst about MTC0
+   - [ ] add inst about MFC0
+   - [ ] add inst about ERTE
+   - [ ] add CP0 register about Status, Cause, EPC
+   - [ ] add inst about SYSTEMCALL
 
 # 更新日志
 ## 2023.09.16
