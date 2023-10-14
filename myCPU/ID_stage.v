@@ -3,6 +3,8 @@
 module id_stage(
     input                          clk           ,
     input                          reset         ,
+    // signel for  exception
+    input                          flush         ,
     //allowin
     input                          es_allowin    ,
     output                         ds_allowin    ,
@@ -175,7 +177,7 @@ assign load_stall = ((rs_wait & (rs == ES_dest))  || (rt_wait & (rt == ES_dest))
 assign br_stall = br_taken & load_stall & {5{ds_valid}};
 
 always @(posedge clk) begin
-    if (reset) begin
+    if (reset || flush) begin
         ds_valid <= 1'b0;
     end
     else if (ds_allowin) begin
