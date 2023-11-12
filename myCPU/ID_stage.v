@@ -19,13 +19,13 @@ module id_stage(
     //to rf: for write back
     input  [`WS_TO_RF_BUS_WD -1:0] ws_to_rf_bus  ,
     //pipeline-bypass
-    input                          es_load_op,      // Ö´ÐÐ¼¶ÊÇ·ñÎªloadÖ¸Áî
+    input                          es_load_op,      // æ‰§è¡Œçº§æ˜¯å¦ä¸ºloadæŒ‡ä»¤
     input  [31:0]                  es_to_ds_result,
     input  [31:0]                  ms_to_ds_result,
     input  [31:0]                  ws_to_ds_result,
-    input  [4:0]                   ES_dest,         // Ö´ÐÐ¼¶Ä¿µÄ¼Ä´æÆ÷ºÅ
-    input  [4:0]                   MS_dest,         // ·Ã´æ¼¶Ä¿µÄ¼Ä´æÆ÷ºÅ
-    input  [4:0]                   WS_dest          // Ð´»Ø¼¶Ä¿µÄ¼Ä´æÆ÷ºÅ
+    input  [4:0]                   ES_dest,         // æ‰§è¡Œçº§ç›®çš„å¯„å­˜å™¨å·
+    input  [4:0]                   MS_dest,         // è®¿å­˜çº§ç›®çš„å¯„å­˜å™¨å·
+    input  [4:0]                   WS_dest          // å†™å›žçº§ç›®çš„å¯„å­˜å™¨å·
 );
 
 reg         ds_valid   ;
@@ -117,6 +117,7 @@ wire        inst_jal;
 wire        inst_jr;
 wire        inst_j;
 wire        inst_jalr;
+wire        ints_syscall;
 
 wire        dst_is_r31;  
 wire        dst_is_rt;   
@@ -131,29 +132,33 @@ wire        rs_gr_eq_zero;
 wire        rs_gr_zero;
 wire        rs_le_zero;
 
-wire load_stall;                        // ·¢Éú×ªÒÆ¼ÆËãÎ´Íê³ÉµÄ±êÖ¾
-wire br_stall;                          // ÏòÈ¡Ö¸¼¶½øÐÐÐÅÏ¢´«µÝ
+wire ds_exception;
+wire [4:0] ds_excode;
+wire load_stall;                        // å‘ç”Ÿè½¬ç§»è®¡ç®—æœªå®Œæˆçš„æ ‡å¿—
+wire br_stall;                          // å‘å–æŒ‡çº§è¿›è¡Œä¿¡æ¯ä¼ é€’
 
-// Õâ¶Î´úÂëÔÚbypass»òÕß×èÈû¼¼ÊõÉÏ¶¼ÐèÒª
-// ÐèÒªÅÐ¶Ï³öÊÇ·ñÓÐÏà¹Ø³åÍ»²úÉú£ºÅÐ¶ÏrsºÍrtÊÇ·ñ´æÔÚ£¬Èô´æÔÚ£¬ÊÇ·ñºÍ¸÷¸ödest³åÍ»
-wire src1_no_rs;    //Ö¸Áî rs Óò·Ç 0£¬ÇÒ²»ÊÇ´Ó¼Ä´æÆ÷¶Ñ¶Á rs µÄÊý¾Ý
-wire src2_no_rt;    //Ö¸Áî rt Óò·Ç 0£¬ÇÒ²»ÊÇ´Ó¼Ä´æÆ÷¶Ñ¶Á rt µÄÊý¾Ý
+// è¿™æ®µä»£ç åœ¨bypassæˆ–è€…é˜»å¡žæŠ€æœ¯ä¸Šéƒ½éœ€è¦
+// éœ€è¦åˆ¤æ–­å‡ºæ˜¯å¦æœ‰ç›¸å…³å†²çªäº§ç”Ÿï¼šåˆ¤æ–­rså’Œrtæ˜¯å¦å­˜åœ¨ï¼Œè‹¥å­˜åœ¨ï¼Œæ˜¯å¦å’Œå„ä¸ªdestå†²çª
+wire src1_no_rs;    //æŒ‡ä»¤ rs åŸŸéž 0ï¼Œä¸”ä¸æ˜¯ä»Žå¯„å­˜å™¨å †è¯» rs çš„æ•°æ®
+wire src2_no_rt;    //æŒ‡ä»¤ rt åŸŸéž 0ï¼Œä¸”ä¸æ˜¯ä»Žå¯„å­˜å™¨å †è¯» rt çš„æ•°æ®
 assign src1_no_rs = 1'b0;
 assign src2_no_rt = inst_addi | inst_addiu | load_op | inst_slti| inst_sltiu | inst_andi | inst_jal 
                     | inst_lui | inst_ori | inst_xori;
-wire rs_wait;       //ÓëÔ´²Ù×÷Êýrs¶ÔÓ¦µÄ¼Ä´æÆ÷ºÅÒ»ÖÂ
-wire rt_wait;		//ÓëÔ´²Ù×÷Êýrt¶ÔÓ¦µÄ¼Ä´æÆ÷ºÅÒ»ÖÂ
+wire rs_wait;       //ä¸Žæºæ“ä½œæ•°rså¯¹åº”çš„å¯„å­˜å™¨å·ä¸€è‡´
+wire rt_wait;		//ä¸Žæºæ“ä½œæ•°rtå¯¹åº”çš„å¯„å­˜å™¨å·ä¸€è‡´
 assign rs_wait = ~src1_no_rs & (rs!=5'd0) 
                  & ( (rs==ES_dest) | (rs==MS_dest) | (rs==WS_dest) );
 assign rt_wait = ~src2_no_rt & (rt!=5'd0)
                  & ( (rt==ES_dest) | (rt==MS_dest) | (rt==WS_dest) );
                  
-wire inst_no_dest;    //±ê¼ÇÖ¸ÁîÃ»ÓÐ¼Ä´æÆ÷ºÅ
+wire inst_no_dest;    //æ ‡è®°æŒ‡ä»¤æ²¡æœ‰å¯„å­˜å™¨å·
 assign inst_no_dest = inst_beq | inst_bne | inst_bgez | inst_bgtz | inst_bltz | inst_jr | inst_j | inst_sw;
 
 assign br_bus       = {br_stall,br_taken,br_target};
 
-assign ds_to_es_bus = {src2_is_zero,  //137:136
+assign ds_to_es_bus = {ds_exception,  //143:143
+                       ds_excode   ,  //142:138
+                       src2_is_zero,  //137:136
                        alu_op      ,  //135:124
                        load_op     ,  //123:123
                        src1_is_sa  ,  //122:122
@@ -169,7 +174,7 @@ assign ds_to_es_bus = {src2_is_zero,  //137:136
                        ds_pc          //31 :0
                       };
 
-assign ds_ready_go    = ~load_stall;           // ÄÚ²¿×´Ì¬±íÕ÷ÐÅºÅ
+assign ds_ready_go    = ~load_stall;           // å†…éƒ¨çŠ¶æ€è¡¨å¾ä¿¡å·
 assign ds_allowin     = !ds_valid || ds_ready_go && es_allowin;
 assign ds_to_es_valid = ds_valid && ds_ready_go;
 
@@ -242,6 +247,7 @@ assign inst_jal    = op_d[6'h03];
 assign inst_jr     = op_d[6'h00] & func_d[6'h08] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 assign inst_j      = op_d[6'h02];
 assign inst_jalr   = op_d[6'h00] & func_d[6'h09];
+assign inst_syscall= op_d[6'h00] & func_d[6'h0c] & rt_d[5'h00] & rd_d[5'h00] & sa_d[5'h00];
 
 assign alu_op[ 0] = inst_add | inst_addu | inst_addi | inst_addiu | inst_lw | inst_sw | inst_jal | inst_bltzal 
                     | inst_bgezal | inst_jalr;
@@ -290,15 +296,15 @@ regfile u_regfile(
     .wdata  (rf_wdata )
     );
 
-// Ô­Ê¼µÄ¶ÁÈ¡·½Ê½
+// åŽŸå§‹çš„è¯»å–æ–¹å¼
 // assign rs_value = rf_rdata1;
 // assign rt_value = rf_rdata2;
-// Ê×ÏÈÐèÒªÅÐ¶ÏÊÇ·ñÓÐdestºÍsrcµÄÖØºÏ£¬ÔÙ½øÐÐvalueµÄÉú³É
+// é¦–å…ˆéœ€è¦åˆ¤æ–­æ˜¯å¦æœ‰destå’Œsrcçš„é‡åˆï¼Œå†è¿›è¡Œvalueçš„ç”Ÿæˆ
 assign rs_value = rs_wait ? ((rs==ES_dest) ? es_to_ds_result :
                   (rs==MS_dest) ? ms_to_ds_result : ws_to_ds_result) : rf_rdata1;
 assign rt_value = rt_wait ? ((rt==ES_dest) ? es_to_ds_result :
                   (rt==MS_dest) ? ms_to_ds_result : ws_to_ds_result) : rf_rdata2;
-// ÒëÂë¼¶bypass´¦Àí½áÊø
+// è¯‘ç çº§bypasså¤„ç†ç»“æŸ
 assign rs_eq_rt = (rs_value == rt_value);
 assign rs_gr_eq_zero = (rs_gr_zero | (rs_value == 0)) ;
 assign rs_gr_zero = (rs_value > 0);
@@ -319,5 +325,9 @@ assign br_target = (inst_beq || inst_bne || inst_bgez || inst_bgtz || inst_bltz 
                    (inst_jr || inst_jalr)              ? rs_value :
                   /*inst_jal || inst_j || inst_bltzal || inst_bgezal*/              
                    {fs_pc[31:28], jidx[25:0], 2'b0};
+
+//exception
+assign ds_excode = (ints_syscall) ? 5'h09 : 5'h1f;
+assign ds_exception = (inst_syscall) ? 1 : 0;
 
 endmodule

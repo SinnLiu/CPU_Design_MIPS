@@ -3,6 +3,8 @@
 module exe_stage(
     input                          clk           ,
     input                          reset         ,
+    // signel for  exception
+    input                          flush         ,
     //allowin
     input                          ms_allowin    ,
     output                         es_allowin    ,
@@ -40,7 +42,9 @@ wire [15:0] es_imm        ;
 wire [31:0] es_rs_value   ;
 wire [31:0] es_rt_value   ;
 wire [31:0] es_pc         ;
-assign {es_src2_is_zero,  //137:136
+wire [4:0]  es_excode     ;
+assign {es_excode      ,  //142:138
+        es_src2_is_zero,  //137:136
         es_alu_op      ,  //135:124
         es_load_op     ,  //123:123
         es_src1_is_sa  ,  //122:122
@@ -65,7 +69,8 @@ assign es_to_ds_result = es_alu_result;
 wire        es_res_from_mem;
 
 assign es_res_from_mem = es_load_op;
-assign es_to_ms_bus = {es_res_from_mem,  //70:70
+assign es_to_ms_bus = {es_excode      ,  //75:71
+                       es_res_from_mem,  //70:70
                        es_gr_we       ,  //69:69
                        es_dest        ,  //68:64
                        es_alu_result  ,  //63:32
@@ -76,7 +81,7 @@ assign es_ready_go    = 1'b1;
 assign es_allowin     = !es_valid || es_ready_go && ms_allowin;
 assign es_to_ms_valid =  es_valid && es_ready_go;
 always @(posedge clk) begin
-    if (reset) begin
+    if (reset || flush) begin
         es_valid <= 1'b0;
     end
     else if (es_allowin) begin

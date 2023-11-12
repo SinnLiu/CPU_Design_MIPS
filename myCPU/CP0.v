@@ -3,6 +3,7 @@
 module CP0(
     input                           clk           ,
     input                           reset         ,
+    input         [4 :0]            excode        ,
     input         [31:0]            cp0_wdata     ,
     input         [31:0]            cp0_addr      ,
     output        [31:0]            cpo_status

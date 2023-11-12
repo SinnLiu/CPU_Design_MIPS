@@ -18,7 +18,8 @@ module mem_stage(
     output [31:0]                  ms_to_ds_result,
     output [4:0]                   MS_dest,                           // 访存级目的寄存器号
     // signel for  exception
-    output                         flush
+    output                         flush,
+    output [4:0]                   excode
 );
 
 reg         ms_valid;
@@ -30,7 +31,9 @@ wire        ms_gr_we;
 wire [ 4:0] ms_dest;
 wire [31:0] ms_alu_result;
 wire [31:0] ms_pc;
-assign {ms_res_from_mem,  //70:70
+wire [4:0]  ms_excode     ;
+assign {ms_excode      ,  //75:71
+        ms_res_from_mem,  //70:70
         ms_gr_we       ,  //69:69
         ms_dest        ,  //68:64
         ms_alu_result  ,  //63:32
@@ -70,4 +73,5 @@ assign ms_final_result = ms_res_from_mem ? mem_result
 
 assign MS_dest = ms_dest & {5{ms_valid}};       // 增加有效位判断
 assign flush = 1'b0;
+assign excode = ms_excode;
 endmodule
