@@ -3,10 +3,14 @@
 module CP0(
     input                           clk           ,
     input                           reset         ,
+    input                           db_flag       ,
+    input         [31:0]            pc            ,
     input         [4 :0]            excode        ,
     input         [31:0]            cp0_wdata     ,
     input         [31:0]            cp0_addr      ,
-    output        [31:0]            cpo_status
+    output                          pipeline_flush,
+    output        [31:0]            cpo_status    ,
+    output        [31:0]            exception_pc
 );
 
 // regsiter about Status, Cause, EPC
@@ -18,6 +22,19 @@ reg cp0_status_exl;
 wire wb_ex;
 wire eret_flush;
 reg cp0_status_ie;
+reg [31:0] cp0_epc;
+
+always @(posedge clk) begin
+    if (reset) begin
+        pipeline_flush <= 1'b0;
+    end
+    else if(wb_ex) begin
+        pipeline_flush <= 1'b1;
+    end
+    else begin
+        pipeline_flush <= 1'b0;
+    end
+end
 
 always @(posedge clk) begin
     if (reset) begin
@@ -26,7 +43,12 @@ always @(posedge clk) begin
     end
     else if(wb_ex) begin
         // wb stage call exception
+        if(cp0_status_exl == 1'b0) begin
+            cp0_epc <= (db_flag == 1'b0) ? pc : pc - 4;
+            exception_pc <= 32'hBFC00380;
+        end
         cp0_status_exl <= 1'b1;
+        
     end
     else if(eret_flush) begin
         // ERET inst 
